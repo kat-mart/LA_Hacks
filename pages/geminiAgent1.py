@@ -50,6 +50,8 @@ def safe_parse_json(text):
 def init_session():
     if "history" not in st.session_state:
         st.session_state.history = []
+    if "ideas" not in st.session_state:
+        st.session_state.ideas = []
 
 
 # ---------------- INPUT UI ---------------- #
@@ -62,20 +64,14 @@ def render_inputs():
     default_start = get_todays_date()
     default_end = default_start + datetime.timedelta(days=7)
 
-    col1, col2 = st.columns(2)
+    difficulty = st.selectbox("Difficulty", ["Beginner", "Easy", "Medium", "Hard"])
 
-    with col1:
-        difficulty = st.selectbox(
-            "Difficulty",
-            ["Beginner", "Easy", "Medium", "Hard"]
-        )
-
-        date_range = st.date_input(
-            "Project timeline",
-            value=(default_start, default_end),
-            min_value=default_start,
-            max_value=set_max_date(),
-            format="MM/DD/YYYY"
+    date_range = st.date_input(
+        "Project timeline",
+        value=(default_start, default_end),
+        min_value=default_start,
+        max_value=set_max_date(),
+        format="MM/DD/YYYY"
         )
 
     if isinstance(date_range, tuple) and len(date_range) == 2:
@@ -83,16 +79,12 @@ def render_inputs():
     else:
         start_date, end_date = None, None
 
-    with col2:
-        team_size = st.slider("Team Size", 1, 10, 3)
-
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
     return {
         "requirements": requirements,
         "difficulty": difficulty,
         "date_range": (start_date, end_date),
-        "team_size": team_size
     }
 
 
@@ -117,14 +109,14 @@ Return ONLY valid JSON.
 Constraints:
 - Exactly 3 project ideas, in JSON format as specified above
 - difficulty is 1–10
-- tech_stack is comma-separated
 - use the user requirements and team skills to guide the ideas you generate
+- tech_stack is comma-separated, simply list out the tech stack as a string
+- do not include any names of users or team members in the ideas you generate
 
 User requirements:
 {inputs['requirements']}
 Time: {inputs['date_range']}
 Difficulty: {inputs['difficulty']}
-Team size: {inputs['team_size']}
 Skills: {skills_text}
 """
 
@@ -220,6 +212,10 @@ def main():
     generate_btn, refresh_btn = render_buttons()
 
     st.divider()
+
+    if st.session_state.ideas:
+        display_ideas(st.session_state.ideas)
+
     if st.button("Back to Form"):
         st.switch_page(st.session_state.page_1) 
 
@@ -230,6 +226,7 @@ def main():
         skills_text=skills_text,
         refresh=False
     )
+        st.session_state.ideas = result
         display_ideas(result)
 
     if refresh_btn:
@@ -239,4 +236,5 @@ def main():
         skills_text=skills_text,
         refresh=True
     )
+        st.session_state.ideas = result
         display_ideas(result)

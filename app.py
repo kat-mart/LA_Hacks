@@ -1,12 +1,12 @@
 import streamlit as st
+from pages.team_form import show_team_form
+from pages.summary import show_summary
 
-from form import manage_team
+page_1 = st.Page(show_team_form, title="Manage Team")
+page_2 = st.Page(show_summary, title="Summary") # placeholder
 
-st.title("Hello World!")
-st.write("This is my first Streamlit app.")
+st.session_state.page_1 = page_1
+st.session_state.page_2 = page_2
 
-team_info = manage_team()
-
-if team_info:
-    st.success(f"Processing data for {len(team_info)} members!")
-    st.write(team_info)
+pg = st.navigation([page_1, page_2], position="hidden")
+pg.run()

@@ -5,13 +5,13 @@ from dotenv import load_dotenv
 import re
 import datetime
 import json
-
+import html
 
 # ---------------- CONFIG ---------------- #
 def configure_gemini():
     load_dotenv()
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    return genai.GenerativeModel("gemini-2.5-flash")
+    return genai.GenerativeModel("gemma-3-1b-it")
 
 
 def configure_page():
@@ -97,17 +97,13 @@ def render_inputs():
 
 
 # ---------------- GENERATION ---------------- #
-def build_prompt(inputs, refresh=False):
+def build_prompt(inputs, skills_text, refresh=False):
     history_text = "\n".join(st.session_state.history)
 
     prompt = f"""
 You are a strict JSON generator.
 
 Return ONLY valid JSON.
-
-No markdown. No HTML. No explanations. No extra text.
-
-Output must be a list of 3 objects:
 
 [
   {{
@@ -119,15 +115,17 @@ Output must be a list of 3 objects:
 ]
 
 Constraints:
-- Exactly 3 project ideas
+- Exactly 3 project ideas, in JSON format as specified above
 - difficulty is 1–10
 - tech_stack is comma-separated
+- use the user requirements and team skills to guide the ideas you generate
 
 User requirements:
 {inputs['requirements']}
 Time: {inputs['date_range']}
 Difficulty: {inputs['difficulty']}
 Team size: {inputs['team_size']}
+Skills: {skills_text}
 """
 
     if refresh:
@@ -135,8 +133,8 @@ Team size: {inputs['team_size']}
 
     return prompt
 
-def generate_ideas(model, inputs, refresh=False):
-    prompt = build_prompt(inputs, refresh)
+def generate_ideas(*, model, inputs, skills_text, refresh=False):
+    prompt = build_prompt(inputs, skills_text, refresh)
     response = model.generate_content(prompt)
 
     st.session_state.history.append(response.text)
@@ -156,27 +154,40 @@ def display_ideas(ideas):
         return
 
     for idea in ideas:
-        st.markdown(f"""
-        <div class="card-block">
-            <h3>{idea['title']}</h3>
+        html_block = f"""
+        <div style="
+            background-color:#0f172a;
+            padding:16px;
+            border-radius:12px;
+            margin-bottom:16px;
+            border:1px solid #1f2937;
+        ">
+            <h3 style="color:white;">{idea['title']}</h3>
 
-            <div class="label">Description</div>
+            <div style="color:#94a3b8; font-size:12px; margin-top:10px;">
+                DESCRIPTION
+            </div>
             <div style="color:#a1a1aa; font-size:14px;">
                 {idea['description']}
             </div>
 
-            <div class="label">Tech Stack</div>
+            <div style="color:#94a3b8; font-size:12px; margin-top:10px;">
+                TECH STACK
+            </div>
             <div style="font-family: monospace; font-size:13px; color:#d4d4d8;">
                 {idea['tech_stack']}
             </div>
 
-            <div class="label">Difficulty</div>
-            <div style="color:#a1a1aa; font-size:14px;">
+            <div style="color:#94a3b8; font-size:12px; margin-top:10px;">
+                DIFFICULTY
+            </div>
+            <div style="color:#a1a1aa;">
                 {idea['difficulty']}
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """
 
+        st.html(html_block)
 
 def render_buttons():
     colA, colB = st.columns(2)
@@ -190,8 +201,16 @@ def render_buttons():
 
 # ---------------- MAIN APP ---------------- #
 def main():
-    data = st.session_state.final_team_data
-    print(data)
+    data = st.session_state.get("final_team_data", {"skills": ""})    
+    skills_text = ""
+
+    for member in data:
+        skills_text += f"{member['name']}: "
+        skills_text += ", ".join(
+            [f"{k} ({v})" for k, v in member["skills"].items()]
+        )
+        skills_text += "\n"
+    print(skills_text)
 
     configure_page()
     init_session()
@@ -205,9 +224,19 @@ def main():
         st.switch_page(st.session_state.page_1) 
 
     if generate_btn:
-        result = generate_ideas(model, inputs, refresh=False)
+        result = generate_ideas(
+        model=model,
+        inputs=inputs,
+        skills_text=skills_text,
+        refresh=False
+    )
         display_ideas(result)
 
     if refresh_btn:
-        result = generate_ideas(model, inputs, refresh=True)
+        result = generate_ideas(
+        model=model,
+        inputs=inputs,
+        skills_text=skills_text,
+        refresh=True
+    )
         display_ideas(result)

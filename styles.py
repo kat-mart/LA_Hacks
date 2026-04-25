@@ -94,13 +94,13 @@ def apply_global_styles():
 
     /* Primary */
     .stButton button:first-child {
-        background: #fafafa;
-        color: #0a0a0a;
+        background: #111;
+        color: #a1a1aa;
         border: none;
     }
 
     .stButton button:first-child:hover {
-        background: #22d3ee;
+        background: #541c8a;
     }
 
     /* Secondary */
@@ -109,7 +109,7 @@ def apply_global_styles():
         color: #a1a1aa;
     }
     .stButton button[kind="secondary"]:hover {
-        border: 1px solid #3f3f46;
+        border: 1px solid #56566b;
         color: #e4e4e7;
     }
 

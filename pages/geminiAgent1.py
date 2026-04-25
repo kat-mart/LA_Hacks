@@ -192,17 +192,66 @@ def render_buttons():
 
 
 # ---------------- MAIN APP ---------------- #
+# def main():
+#     data = st.session_state.get("final_team_data", {"skills": ""})    
+#     skills_text = ""
+
+#     for member in data:
+#         skills_text += f"{member['name']}: "
+#         skills_text += ", ".join(
+#             [f"{k} ({v})" for k, v in member["skills"].items()]
+#         )
+#         skills_text += "\n"
+#     print(skills_text)
+
+#     configure_page()
+#     init_session()
+
+#     model = configure_gemini()
+#     inputs = render_inputs()
+#     generate_btn, refresh_btn = render_buttons()
+
+#     st.divider()
+
+#     if st.session_state.ideas:
+#         display_ideas(st.session_state.ideas)
+
+#     if st.button("Back to Form"):
+#         st.switch_page(st.session_state.page_1) 
+
+#     if generate_btn:
+#         result = generate_ideas(
+#         model=model,
+#         inputs=inputs,
+#         skills_text=skills_text,
+#         refresh=False
+#     )
+#         st.session_state.ideas = result
+#         display_ideas(result)
+
+#     if refresh_btn:
+#         result = generate_ideas(
+#         model=model,
+#         inputs=inputs,
+#         skills_text=skills_text,
+#         refresh=True
+#     )
+#         st.session_state.ideas = result
+#         display_ideas(result)
+
 def main():
-    data = st.session_state.get("final_team_data", {"skills": ""})    
+    # Adding a safety check for data structure
+    data = st.session_state.get("final_team_data", [])    
     skills_text = ""
 
-    for member in data:
-        skills_text += f"{member['name']}: "
-        skills_text += ", ".join(
-            [f"{k} ({v})" for k, v in member["skills"].items()]
-        )
-        skills_text += "\n"
-    print(skills_text)
+    # Check if data is a list before iterating
+    if isinstance(data, list):
+        for member in data:
+            skills_text += f"{member.get('name', 'User')}: "
+            skills_text += ", ".join(
+                [f"{k} ({v})" for k, v in member.get("skills", {}).items()]
+            )
+            skills_text += "\n"
 
     configure_page()
     init_session()
@@ -213,28 +262,34 @@ def main():
 
     st.divider()
 
+    # Move the display logic BELOW the button actions or use rerun
+    if generate_btn:
+        result = generate_ideas(
+            model=model,
+            inputs=inputs,
+            skills_text=skills_text,
+            refresh=False
+        )
+        st.session_state.ideas = result
+        st.rerun()  # Force refresh to show new ideas
+
+    if refresh_btn:
+        result = generate_ideas(
+            model=model,
+            inputs=inputs,
+            skills_text=skills_text,
+            refresh=True
+        )
+        st.session_state.ideas = result
+        st.rerun()  # Force refresh to show new ideas
+
+    # This will now always show the most current ideas in state
     if st.session_state.ideas:
         display_ideas(st.session_state.ideas)
 
     if st.button("Back to Form"):
-        st.switch_page(st.session_state.page_1) 
-
-    if generate_btn:
-        result = generate_ideas(
-        model=model,
-        inputs=inputs,
-        skills_text=skills_text,
-        refresh=False
-    )
-        st.session_state.ideas = result
-        display_ideas(result)
-
-    if refresh_btn:
-        result = generate_ideas(
-        model=model,
-        inputs=inputs,
-        skills_text=skills_text,
-        refresh=True
-    )
-        st.session_state.ideas = result
-        display_ideas(result)
+        # Ensure page_1 is actually defined in session_state before calling
+        if "page_1" in st.session_state:
+            st.switch_page(st.session_state.page_1) 
+        else:
+            st.error("Navigation path not found.")

@@ -145,7 +145,7 @@ def display_ideas(ideas):
         st.error("Invalid format returned")
         return
 
-    for idea in ideas:
+    for i, idea in enumerate(ideas):
         html_block = f"""
         <div style="
             background-color:#0f172a;
@@ -180,6 +180,11 @@ def display_ideas(ideas):
         """
 
         st.html(html_block)
+        st.markdown("<div style='margin-top:-10px;'>", unsafe_allow_html=True)
+        if st.button("Select Project", key=f"select_{i}"):
+            st.session_state.selected_idea = idea  
+            st.switch_page(st.session_state.page_3) 
+        st.markdown("</div>", unsafe_allow_html=True)
 
 def render_buttons():
     colA, colB = st.columns(2)
@@ -190,55 +195,11 @@ def render_buttons():
 
     return generate_btn, refresh_btn
 
+def set_skills_text(text):
+    return text
+
 
 # ---------------- MAIN APP ---------------- #
-# def main():
-#     data = st.session_state.get("final_team_data", {"skills": ""})    
-#     skills_text = ""
-
-#     for member in data:
-#         skills_text += f"{member['name']}: "
-#         skills_text += ", ".join(
-#             [f"{k} ({v})" for k, v in member["skills"].items()]
-#         )
-#         skills_text += "\n"
-#     print(skills_text)
-
-#     configure_page()
-#     init_session()
-
-#     model = configure_gemini()
-#     inputs = render_inputs()
-#     generate_btn, refresh_btn = render_buttons()
-
-#     st.divider()
-
-#     if st.session_state.ideas:
-#         display_ideas(st.session_state.ideas)
-
-#     if st.button("Back to Form"):
-#         st.switch_page(st.session_state.page_1) 
-
-#     if generate_btn:
-#         result = generate_ideas(
-#         model=model,
-#         inputs=inputs,
-#         skills_text=skills_text,
-#         refresh=False
-#     )
-#         st.session_state.ideas = result
-#         display_ideas(result)
-
-#     if refresh_btn:
-#         result = generate_ideas(
-#         model=model,
-#         inputs=inputs,
-#         skills_text=skills_text,
-#         refresh=True
-#     )
-#         st.session_state.ideas = result
-#         display_ideas(result)
-
 def main():
     # Adding a safety check for data structure
     data = st.session_state.get("final_team_data", [])    
@@ -252,7 +213,8 @@ def main():
                 [f"{k} ({v})" for k, v in member.get("skills", {}).items()]
             )
             skills_text += "\n"
-
+    set_skills_text(skills_text) 
+    print(skills_text)
     configure_page()
     init_session()
 

@@ -11,8 +11,24 @@ def remove_task(member_name, task_idx):
 def update_task_status(member_name, task_idx, widget_key):
     st.session_state.project_tasks[member_name][task_idx]["done"] = st.session_state[widget_key]
 
+def parse_skills():
+    ## skills_text is output like 
+    # kelly: Rust (Intermediate), React (Beginner)
+    # jeff: Gemini API (Advanced), SQL (Beginner)
+    pass
+
 # --- MAIN RENDER ---
 def show_tasks_editable():
+    idea = st.session_state.get("selected_idea")
+
+    if not idea:
+        st.error("No project selected")
+    else:
+        st.title(idea["title"])
+        st.write(idea["description"])
+        st.code(idea["tech_stack"])
+        st.write(f"Difficulty: {idea['difficulty']}")
+
     st.title("Team Workloads")
 
     if "project_tasks" not in st.session_state:

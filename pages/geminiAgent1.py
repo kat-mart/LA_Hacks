@@ -11,7 +11,7 @@ import html
 def configure_gemini():
     load_dotenv()
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    return genai.GenerativeModel("gemma-3-1b-it")
+    return genai.GenerativeModel("gemma-4-31b-it")
 
 
 def configure_page():

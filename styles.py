@@ -10,7 +10,6 @@ def apply_global_styles():
     :root {
         --bg:           #f5f0e8;
         --bg-surface:   #fdf8f0;
-        --bg-card:      #fff9f0;
         --border:       #e0d4bb;
         --border-soft:  #ede4d0;
         --text-primary: #3b2f1e;
@@ -26,52 +25,10 @@ def apply_global_styles():
         --shadow-md:    rgba(100, 70, 30, 0.18);
     }
 
-    /* ─── Dark Mode Override ─────────────────────────────────────────── */
-    @media (prefers-color-scheme: dark) {
-        :root {
-            --bg:           #1e1810;
-            --bg-surface:   #261e14;
-            --bg-card:      #2e2418;
-            --border:       #3d3020;
-            --border-soft:  #352a1c;
-            --text-primary: #f0e6d2;
-            --text-secondary:#c8a880;
-            --text-muted:   #8a7060;
-            --accent:       #d4923f;
-            --accent-soft:  #3d2a18;
-            --accent-hover: #e8a84a;
-            --success:      #7aaa82;
-            --danger:       #c8725a;
-            --highlight:    #5a4420;
-            --shadow:       rgba(0, 0, 0, 0.35);
-            --shadow-md:    rgba(0, 0, 0, 0.5);
-        }
-    }
-
-    /* ─── Streamlit Dark Mode Support ───────────────────────────────── */
-    [data-theme="dark"] {
-        --bg:           #1e1810;
-        --bg-surface:   #261e14;
-        --bg-card:      #2e2418;
-        --border:       #3d3020;
-        --border-soft:  #352a1c;
-        --text-primary: #f0e6d2;
-        --text-secondary:#c8a880;
-        --text-muted:   #8a7060;
-        --accent:       #d4923f;
-        --accent-soft:  #3d2a18;
-        --accent-hover: #e8a84a;
-        --success:      #7aaa82;
-        --danger:       #c8725a;
-        --highlight:    #5a4420;
-        --shadow:       rgba(0, 0, 0, 0.35);
-        --shadow-md:    rgba(0, 0, 0, 0.5);
-    }
-
     /* ─── Base & App Shell ───────────────────────────────────────────── */
-    html, body, [class*="css"] {
-        font-family: 'Lato', Georgia, serif;
-        color: var(--text-primary);
+    html, body, .stApp {
+        background-color: var(--bg) !important;
+        color: var(--text-primary) !important;
     }
 
     .stApp {

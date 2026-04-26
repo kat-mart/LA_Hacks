@@ -56,10 +56,22 @@ def init_session():
 
 # ---------------- INPUT UI ---------------- #
 def render_inputs():
-    requirements = st.text_area(
-        "Requirements",
-        placeholder="e.g. AI app, beginner-friendly, useful for students"
-    )
+    already_have_idea = st.checkbox("I already have a project idea")
+
+    requirements = ""
+    user_idea = ""
+
+    # Only show ONE of these
+    if already_have_idea:
+        user_idea = st.text_area(
+            "Describe your project idea",
+            placeholder="Explain your idea briefly..."
+        )
+    else:
+        requirements = st.text_area(
+            "Requirements",
+            placeholder="e.g. AI app, beginner-friendly, useful for students"
+        )
 
     default_start = get_todays_date()
     default_end = default_start + datetime.timedelta(days=7)
@@ -72,7 +84,7 @@ def render_inputs():
         min_value=default_start,
         max_value=set_max_date(),
         format="MM/DD/YYYY"
-        )
+    )
 
     if isinstance(date_range, tuple) and len(date_range) == 2:
         start_date, end_date = date_range
@@ -85,6 +97,8 @@ def render_inputs():
         "requirements": requirements,
         "difficulty": difficulty,
         "date_range": (start_date, end_date),
+        "already_have_idea": already_have_idea,
+        "user_idea": user_idea
     }
 
 
@@ -92,6 +106,37 @@ def render_inputs():
 def build_prompt(inputs, skills_text, refresh=False):
     history_text = "\n".join(st.session_state.history)
 
+    # 🔁 NEW: If user already has an idea → override prompt
+    if inputs["already_have_idea"] and inputs["user_idea"].strip():
+        return f"""
+You are a strict JSON generator.
+
+Return ONLY valid JSON.
+
+[
+  {{
+    "title": "string",
+    "description": "string",
+    "tech_stack": "string",
+    "difficulty": number
+  }}
+]
+
+Task:
+- Transform the user's project idea into a clean, well-structured project definition
+- Improve clarity and expand the description
+- Suggest an appropriate tech stack
+- Assign a difficulty from 1–10
+
+User project idea:
+{inputs['user_idea']}
+
+Time: {inputs['date_range']}
+Difficulty preference: {inputs['difficulty']}
+Skills: {skills_text}
+"""
+
+    # 🧠 DEFAULT: your existing generation prompt
     prompt = f"""
 You are a strict JSON generator.
 
@@ -107,11 +152,11 @@ Return ONLY valid JSON.
 ]
 
 Constraints:
-- Exactly 3 project ideas, in JSON format as specified above
+- Exactly 3 project ideas
 - difficulty is 1–10
-- use the user requirements and team skills to guide the ideas you generate
-- tech_stack is comma-separated, simply list out the tech stack as a string
-- do not include any names of users or team members in the ideas you generate
+- use the user requirements and team skills
+- tech_stack is comma-separated
+- do not include names
 
 User requirements:
 {inputs['requirements']}
@@ -148,32 +193,32 @@ def display_ideas(ideas):
     for i, idea in enumerate(ideas):
         html_block = f"""
         <div style="
-            background-color:#fff9f0;
+            background-color:#0f172a;
             padding:16px;
             border-radius:12px;
             margin-bottom:16px;
             border:1px solid #1f2937;
         ">
-            <h3>{idea['title']}</h3>
+            <h3 style="color:white;">{idea['title']}</h3>
 
-            <div style="color:#3b301e; font-size:12px; margin-top:10px;">
+            <div style="color:#94a3b8; font-size:12px; margin-top:10px;">
                 DESCRIPTION
             </div>
-            <div style="color:#3b301e; font-size:14px;">
+            <div style="color:#a1a1aa; font-size:14px;">
                 {idea['description']}
             </div>
 
-            <div style="color:#3b301e; font-size:12px; margin-top:10px;">
+            <div style="color:#94a3b8; font-size:12px; margin-top:10px;">
                 TECH STACK
             </div>
-            <div style="font-family: monospace; font-size:13px; color:#3b301e;">
+            <div style="font-family: monospace; font-size:13px; color:#d4d4d8;">
                 {idea['tech_stack']}
             </div>
 
-            <div style="color:#3b301e; font-size:12px; margin-top:10px;">
+            <div style="color:#94a3b8; font-size:12px; margin-top:10px;">
                 DIFFICULTY
             </div>
-            <div style="color:#3b301e;">
+            <div style="color:#a1a1aa;">
                 {idea['difficulty']}
             </div>
         </div>
@@ -185,15 +230,6 @@ def display_ideas(ideas):
             st.session_state.selected_idea = idea  
             st.switch_page(st.session_state.page_3) 
         st.markdown("</div>", unsafe_allow_html=True)
-
-def render_buttons():
-    colA, colB = st.columns(2)
-    with colA:
-        generate_btn = st.button("Generate")
-    with colB:
-        refresh_btn = st.button("Refresh")
-
-    return generate_btn, refresh_btn
 
 def set_skills_text(text):
     return text
@@ -220,30 +256,50 @@ def main():
 
     model = configure_gemini()
     inputs = render_inputs()
-    generate_btn, refresh_btn = render_buttons()
+    generate_btn = False
+    refresh_btn = False
 
-    st.divider()
+    colA, colB = st.columns(2)
+
+    has_ideas = bool(st.session_state.get("ideas"))
+    with colA:
+        generate_btn = st.button("Generate")
+    with colB:
+        refresh_btn = st.button(
+        "Refresh",
+        disabled=inputs["already_have_idea"] or not has_ideas
+    )
 
     # Move the display logic BELOW the button actions or use rerun
     if generate_btn:
-        result = generate_ideas(
-            model=model,
-            inputs=inputs,
-            skills_text=skills_text,
-            refresh=False
+        message = (
+            "Refining your idea..." 
+            if inputs["already_have_idea"] 
+            else "Generating project ideas..."
         )
+
+        with st.spinner(message):
+            result = generate_ideas(
+                model=model,
+                inputs=inputs,
+                skills_text=skills_text,
+                refresh=False
+            )
+
         st.session_state.ideas = result
-        st.rerun()  # Force refresh to show new ideas
+        st.rerun()
 
     if refresh_btn:
-        result = generate_ideas(
-            model=model,
-            inputs=inputs,
-            skills_text=skills_text,
-            refresh=True
-        )
+        with st.spinner("Refreshing ideas..."):
+            result = generate_ideas(
+                model=model,
+                inputs=inputs,
+                skills_text=skills_text,
+                refresh=True
+            )
+
         st.session_state.ideas = result
-        st.rerun()  # Force refresh to show new ideas
+        st.rerun()
 
     # This will now always show the most current ideas in state
     if st.session_state.ideas:

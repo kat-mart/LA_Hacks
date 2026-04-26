@@ -148,32 +148,32 @@ def display_ideas(ideas):
     for i, idea in enumerate(ideas):
         html_block = f"""
         <div style="
-            background-color:#0f172a;
+            background-color:#fff9f0;
             padding:16px;
             border-radius:12px;
             margin-bottom:16px;
             border:1px solid #1f2937;
         ">
-            <h3 style="color:white;">{idea['title']}</h3>
+            <h3>{idea['title']}</h3>
 
-            <div style="color:#94a3b8; font-size:12px; margin-top:10px;">
+            <div style="color:#3b301e; font-size:12px; margin-top:10px;">
                 DESCRIPTION
             </div>
-            <div style="color:#a1a1aa; font-size:14px;">
+            <div style="color:#3b301e; font-size:14px;">
                 {idea['description']}
             </div>
 
-            <div style="color:#94a3b8; font-size:12px; margin-top:10px;">
+            <div style="color:#3b301e; font-size:12px; margin-top:10px;">
                 TECH STACK
             </div>
-            <div style="font-family: monospace; font-size:13px; color:#d4d4d8;">
+            <div style="font-family: monospace; font-size:13px; color:#3b301e;">
                 {idea['tech_stack']}
             </div>
 
-            <div style="color:#94a3b8; font-size:12px; margin-top:10px;">
+            <div style="color:#3b301e; font-size:12px; margin-top:10px;">
                 DIFFICULTY
             </div>
-            <div style="color:#a1a1aa;">
+            <div style="color:#3b301e;">
                 {idea['difficulty']}
             </div>
         </div>

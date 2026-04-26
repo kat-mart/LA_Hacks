@@ -18,7 +18,7 @@ def remove_member(mid):
             del st.session_state.team_data_store[mid]
 
 def show_team_form():
-    st.title("Step 1: Create Team")
+    st.title("Create Team")
     
     if "team_ids" not in st.session_state:
         st.session_state.team_ids = [str(uuid.uuid4())]

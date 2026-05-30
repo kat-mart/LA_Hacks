@@ -1,7 +1,7 @@
 import streamlit as st
 from pages.landing import show_landing_page
 from pages.team_form import show_team_form
-from pages.geminiAgent1 import main
+from pages.ideas import main
 from pages.tasks import show_tasks_editable
 from styles import apply_global_styles
 
